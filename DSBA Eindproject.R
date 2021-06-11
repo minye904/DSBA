@@ -173,7 +173,7 @@ df4$cluster[df4$cluster==4]<-"Good"
 df4$Koboplus[df4$Koboplus==1]<-"Kobo plus klanten"
 df4$Koboplus[df4$Koboplus==0]<-"a la carte klanten"
 
-
+table(df4$Koboplus) # check aantal klanten in welke groep
 
 
 # voorbereiding plots
@@ -231,8 +231,10 @@ ggplot(df4_plot2, aes(y=recency, fill=Koboplus))+geom_boxplot()
 ggplot(df4_plot2, aes(y=frequency, fill=Koboplus))+geom_boxplot()
 ggplot(df4_plot2, aes(y=revenue, fill=Koboplus))+geom_boxplot()
 
+
 # Part 2 | PCA ====
 
 
 
 # Part 3 | Regressions ====
+

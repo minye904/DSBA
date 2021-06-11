@@ -1,6 +1,7 @@
-# preparation k-means ====
+# Part 1 | preparation k-means ====
 
 rm(list = ls())
+set.seed(2021)
 
 library('FactoMineR')
 library('gmodels')
@@ -19,7 +20,7 @@ df1<-df0[2:4]
 
 
 # Standardize train and test using means & sd's
-
+set.seed(2021)
 means<-colMeans(df1)
 sds<-apply(df1, 2, sd)
 df2<-scale(df1,means,sds)
@@ -66,6 +67,12 @@ boxplot(df3[k.out$cluster==1,], ylim = c(0, 20))
 boxplot(df3[k.out$cluster==2,],ylim = c(0, 20))
 boxplot(df3[k.out$cluster==3,],ylim = c(0, 20))
 boxplot(df3[k.out$cluster==4,],ylim = c(0, 20))
+
+par(mfrow=c(2,2))
+boxplot(df3[k.out$cluster==1,])
+boxplot(df3[k.out$cluster==2,])
+boxplot(df3[k.out$cluster==3,])
+boxplot(df3[k.out$cluster==4,])
 
 
 # Om inzicht te krijgen in de verdelingen per cluster kunnen we de data per cluster selecteren:
@@ -126,6 +133,23 @@ sum(df4$indKP)
 df4$cluster<-NULL
 df4$cluster<-k.out$cluster
 
+# tabel met kern informatie
+
+df4_mutated <-df4%>%
+  group_by(cluster)%>%
+  summarize(aantal_klanten = n(), 
+            percentage_klanten = n()/nrow(df4),
+            omzet=sum(revenue),
+            omzet_percentage= sum(revenue)/sum(df4$revenue),
+            gemiddelde_omzet= mean(revenue), 
+            gemiddelde_recency=mean(recency), 
+            gemiddelde_frequency=mean(frequency), 
+            kobo_plus_binary=sum(Koboplus),
+            kobo_plus_fractie=sum(indKP))
+
+print(df4_mutated)
+
+saveRDS(df4_mutated, file = "Cluster_summary.Rds")
 
 # individuele dataset maken voor clusters
 CCC1<-df4[k.out$cluster==1,] 
@@ -141,9 +165,9 @@ boxplot(CCC4[2:4])
 
 # data categorisatie op basis van interpretatie
 
-df4$cluster[df4$cluster==1]<-"Sleepy"
-df4$cluster[df4$cluster==2]<-"Better"
-df4$cluster[df4$cluster==3]<-"Best"
+df4$cluster[df4$cluster==1]<-"Better"
+df4$cluster[df4$cluster==2]<-"Best"
+df4$cluster[df4$cluster==3]<-"Sleepy"
 df4$cluster[df4$cluster==4]<-"Good"
 
 df4$Koboplus[df4$Koboplus==1]<-"Kobo plus klanten"
@@ -151,26 +175,21 @@ df4$Koboplus[df4$Koboplus==0]<-"a la carte klanten"
 
 
 
-# tabel met kern informatie
-
-df4_mutated <-df4%>%
-  group_by(cluster)%>%
-  summarize(aantal_klanten = n(), 
-            percentage_klanten = n()/nrow(df4),
-            omzet=sum(revenue),
-            omzet_percentage= sum(revenue)/sum(df4$revenue),
-            gemiddelde_omzet= mean(revenue), 
-            gemiddelde_recency=mean(recency), 
-            gemiddelde_frequency=mean(frequency), 
-            kobo_plus_binary=mean(Koboplus),
-            kobo_plus_fractie=mean(indKP))
-
 
 # voorbereiding plots
 df4_plot<-df4 %>%
   mutate(cluster=as.factor(cluster)) %>%
   mutate(cluster=fct_relevel(cluster,"Best", "Better", "Good","Sleepy"))%>%
   mutate(Koboplus=as.factor(Koboplus))
+
+
+# boxplot
+par(mfrow=c(2,2))
+boxplot(df1[k.out$cluster==2,],ylim = c(0, 2000))
+boxplot(df1[k.out$cluster==1,],ylim = c(0, 2000))
+boxplot(df1[k.out$cluster==3,],ylim = c(0, 2000))
+boxplot(df1[k.out$cluster==4,],ylim = c(0, 2000))
+
 
 
 # RFM plot voor 4 clusters
@@ -194,6 +213,11 @@ ggplot(df4_plot, aes(y=revenue, fill=cluster, color=Koboplus))+geom_boxplot()+
   scale_fill_manual(values = c("light blue", "yellow", "light green", "grey"))
 
 
+
+saveRDS(df4, file = "K-means_data.Rds")
+ID_Cluster<-df4[,c(1,7)]
+saveRDS(ID_Cluster, file = "ID_cluster.Rds")
+
 # moeten we Kobo plus recency & frequency op basis van borrow data berekenen?
 # we nemen nu Kobo plus abonnement betaling als uitgangspunt, waardoor Kobo plus klanten automatisch
 # elke maand, bij doorlopende abonnement een hoge recency & frequency heeft
@@ -206,3 +230,9 @@ df4_plot2<-df4 %>%
 ggplot(df4_plot2, aes(y=recency, fill=Koboplus))+geom_boxplot()
 ggplot(df4_plot2, aes(y=frequency, fill=Koboplus))+geom_boxplot()
 ggplot(df4_plot2, aes(y=revenue, fill=Koboplus))+geom_boxplot()
+
+# Part 2 | PCA ====
+
+
+
+# Part 3 | Regressions ====
